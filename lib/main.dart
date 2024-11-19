@@ -7,6 +7,8 @@ import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'dart:typed_data'; 
 import 'package:fluttertoast/fluttertoast.dart';
 
+import 'package:flutter_image_compress/flutter_image_compress.dart' ;
+
 void main() {
   runApp(const MyApp());
 }
@@ -51,10 +53,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future _savePhoto() async { // ギャラリーへ画像を保存する関数
     if (_photo != null) {
-      Uint8List buffer = await _photo!.readAsBytes(); // 1
-      final result = await ImageGallerySaver.saveImage(buffer); // 2
-      print(result); // デバッグ用
-      Fluttertoast.showToast(msg: "写真を保存しました");
+      if (Platform.isAndroid) { // Androidの場合
+        // 新しい画像を生成
+        final fixedImageBytes = await FlutterImageCompress.compressWithFile(
+          _photo!.path,
+        );
+        if(fixedImageBytes != null){
+          final result = await ImageGallerySaver.saveImage(fixedImageBytes);
+          print(result); // デバッグ用
+          Fluttertoast.showToast(msg: "写真を保存しました");
+        }else{
+          // エラーハンドリング　または 妥協案として「Android 以外」と同じくそのまま保存
+          print("fixedImageBytes == null"); // デバッグ用
+        }
+      }else{ // Android 以外
+        Uint8List buffer = await _photo!.readAsBytes();
+        final result = await ImageGallerySaver.saveImage(buffer);
+        print(result); // デバッグ用
+        Fluttertoast.showToast(msg: "写真を保存しました");
+      }
     }else{
       Fluttertoast.showToast(msg: "写真を撮影してください");
     }
