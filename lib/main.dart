@@ -38,6 +38,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> { 
   final ImagePicker _picker = ImagePicker(); // 1
   File? _photo; // 2
+  File? _image;
 
   Future _takePhoto() async { // 3
     final xfile = await _picker.pickImage(source: ImageSource.camera); // 4 
@@ -59,6 +60,15 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Future _openGallery() async { // ギャラリーから画像を取得する関数
+    final xfile = await _picker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      if (xfile != null) {
+        _image = File(xfile.path); // XFile → File
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final photoView = SizedBox( // 写真撮影のビュー
@@ -68,12 +78,21 @@ class _MyHomePageState extends State<MyHomePage> {
             ? const Text("写真撮影のビュー")
             : Image.file(_photo!),
     );
+    
+    final imageView = SizedBox(
+        width: 200,
+        height: 200,
+        child: _image == null
+            ? const Text("ギャラリーのビュー")
+            : Image.file(_image!),
+    );
 
     final body = Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           photoView, // 写真撮影のビュー
+          imageView, // ギャラリーのビュー
         ],
       )
     );
@@ -89,6 +108,11 @@ class _MyHomePageState extends State<MyHomePage> {
         FloatingActionButton( // ギャラリーへ画像を保存する関数
           onPressed: _savePhoto,
           child: const Icon(Icons.save,),
+        ),
+        const SizedBox(width: 20), // 隙間を空ける
+        FloatingActionButton( // ギャラリーから画像を取得する
+          onPressed: _openGallery,
+          child: const Icon(Icons.image),
         ),
       ]
     );
